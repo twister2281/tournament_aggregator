@@ -31,4 +31,3 @@ public class TeamUpdateRequest {
     @PositiveOrZero(message = "Total matches must be zero or positive")
     private Integer totalMatches;
 }
-

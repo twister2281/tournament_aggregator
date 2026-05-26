@@ -6,4 +6,3 @@ public class TeamNotFoundException extends RuntimeException {
         super("Team with id %d not found".formatted(id));
     }
 }
-

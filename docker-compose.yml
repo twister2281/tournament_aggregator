@@ -41,4 +41,3 @@ networks:
   tournament-network:
     driver: bridge
 
-
