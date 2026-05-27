@@ -1,0 +1,9 @@
+.result-card {
+    transition: transform .2s ease;
+}
+
+.result-card:hover {
+    transform: translateY(-4px);
+}
+
+

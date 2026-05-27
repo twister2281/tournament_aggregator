@@ -8,7 +8,12 @@ public class MatchCheckPageController {
 
     @GetMapping("/")
     public String root() {
-        return "redirect:/match-check";
+        return "index";
+    }
+
+    @GetMapping("/index")
+    public String index() {
+        return "index";
     }
 
     @GetMapping("/match-check")
