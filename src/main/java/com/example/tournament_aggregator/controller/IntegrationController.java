@@ -1,5 +1,7 @@
 package com.example.tournament_aggregator.controller;
 
+import com.example.tournament_aggregator.domain.dto.MatchCheckResponse;
+import com.example.tournament_aggregator.exception.MatchNotFoundException;
 import com.example.tournament_aggregator.integration.dto.DotaMatch;
 import com.example.tournament_aggregator.integration.service.DotaApiIntegrationService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -51,6 +53,46 @@ public class IntegrationController {
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             log.error("Error finding team id", e);
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("status", "error");
+            errorResponse.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        }
+    }
+
+    /**
+     * Получает точный матч по matchId через OpenDota API
+     */
+    @GetMapping("/dota/match/{matchId}")
+    @Operation(summary = "Получить матч по id", description = "Возвращает точный матч из OpenDota API по matchId")
+    public ResponseEntity<Map<String, Object>> getMatchById(@PathVariable String matchId) {
+        log.info("Received request to fetch match by id: {}", matchId);
+
+        try {
+            Long parsedMatchId = Long.valueOf(matchId);
+            MatchCheckResponse match = dotaApiService.fetchMatchById(parsedMatchId);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("status", "success");
+            response.put("match", match);
+            return ResponseEntity.ok(response);
+        } catch (NumberFormatException e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("status", "error");
+            errorResponse.put("message", "Match id must be a valid number");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+        } catch (IllegalArgumentException e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("status", "error");
+            errorResponse.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+        } catch (MatchNotFoundException e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("status", "not_found");
+            errorResponse.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+        } catch (Exception e) {
+            log.error("Error fetching match by id", e);
             Map<String, Object> errorResponse = new HashMap<>();
             errorResponse.put("status", "error");
             errorResponse.put("message", e.getMessage());

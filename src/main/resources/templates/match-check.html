@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Проверка матча OpenDota</title>
+</head>
+<body>
+<main class="page">
+    <section class="hero">
+        <div class="eyebrow">OpenDota · проверка матча по ID</div>
+        <h1>Проверь матч прямо на сайте</h1>
+        <p class="lead">
+            Вставь <strong>match id</strong>, и страница через AJAX сама достанет данные из локального API,
+            которое, в свою очередь, обращается к OpenDota и парсит результат.
+        </p>
+
+        <div class="panel">
+            <form id="matchForm" autocomplete="off">
+                <div class="field">
+                    <label for="matchId">ID матча</label>
+                    <input
+                            id="matchId"
+                            name="matchId"
+                            type="number"
+                            inputmode="numeric"
+                            min="1"
+                            placeholder="Например: 8825930484"
+                            required
+                    />
+                    <div class="meta">Поддерживается только числовой ID матча.</div>
+                </div>
+                <button class="button" id="submitButton" type="submit">Проверить матч</button>
+            </form>
+
+            <div id="statusBox" class="status" role="status" aria-live="polite"></div>
+
+            <div id="resultBox" class="result" aria-live="polite">
+                <div class="card full">
+                    <div class="label">Матч</div>
+                    <div class="value" id="resultMatchId">—</div>
+                </div>
+                <div class="card">
+                    <div class="label">Команда Radiant</div>
+                    <div class="value" id="resultRadiant">—</div>
+                </div>
+                <div class="card">
+                    <div class="label">Команда Dire</div>
+                    <div class="value" id="resultDire">—</div>
+                </div>
+                <div class="card">
+                    <div class="label">Продолжительность</div>
+                    <div class="value" id="resultDuration">—</div>
+                </div>
+                <div class="card">
+                    <div class="label">Победитель</div>
+                    <div class="value winner" id="resultWinner">—</div>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+
+<script>
+    const form = document.getElementById('matchForm');
+    const input = document.getElementById('matchId');
+    const submitButton = document.getElementById('submitButton');
+    const statusBox = document.getElementById('statusBox');
+    const resultBox = document.getElementById('resultBox');
+
+    const resultMatchId = document.getElementById('resultMatchId');
+    const resultRadiant = document.getElementById('resultRadiant');
+    const resultDire = document.getElementById('resultDire');
+    const resultDuration = document.getElementById('resultDuration');
+    const resultWinner = document.getElementById('resultWinner');
+
+    function formatDuration(totalSeconds) {
+        const seconds = Number(totalSeconds || 0);
+        const hours = Math.floor(seconds / 3600);
+        const minutes = Math.floor((seconds % 3600) / 60);
+        const secs = seconds % 60;
+
+        const parts = [];
+        if (hours > 0) {
+            parts.push(`${hours} ч`);
+        }
+        parts.push(`${minutes.toString().padStart(2, '0')} мин`);
+        parts.push(`${secs.toString().padStart(2, '0')} сек`);
+        return parts.join(' ');
+    }
+
+    function showStatus(message, type) {
+        statusBox.textContent = message;
+        statusBox.className = `status ${type}`;
+    }
+
+    function clearStatus() {
+        statusBox.textContent = '';
+        statusBox.className = 'status';
+    }
+
+    function renderResult(match) {
+        resultMatchId.textContent = `Match ID: ${match.matchId ?? '—'}`;
+        resultRadiant.textContent = match.radiantTeamName ?? 'Неизвестно';
+        resultDire.textContent = match.direTeamName ?? 'Неизвестно';
+        resultDuration.textContent = formatDuration(match.durationSeconds);
+        resultWinner.textContent = match.winnerTeamName ?? 'Победитель не определён';
+        resultBox.classList.add('show');
+    }
+
+    function hideResult() {
+        resultBox.classList.remove('show');
+    }
+
+    form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        clearStatus();
+        hideResult();
+
+        const matchId = input.value.trim();
+        if (!matchId) {
+            showStatus('Введите ID матча.', 'error');
+            return;
+        }
+
+        if (!/^\d+$/.test(matchId)) {
+            showStatus('ID матча должен содержать только цифры.', 'error');
+            return;
+        }
+
+        submitButton.disabled = true;
+        submitButton.textContent = 'Ищем...';
+
+        try {
+            const response = await fetch(`/api/integration/dota/match/${encodeURIComponent(matchId)}`, {
+                headers: {
+                    'Accept': 'application/json'
+                }
+            });
+
+            const contentType = response.headers.get('content-type') || '';
+            const payload = contentType.includes('application/json')
+                ? await response.json()
+                : { message: await response.text() };
+
+            if (!response.ok) {
+                showStatus(payload.message || 'Не удалось получить данные матча.', 'error');
+                return;
+            }
+
+            if (payload.status && payload.status !== 'success') {
+                showStatus(payload.message || 'Матч не найден.', 'error');
+                return;
+            }
+
+            const match = payload.match ?? payload;
+            renderResult(match);
+            showStatus('Матч успешно найден и обработан.', 'success');
+        } catch (error) {
+            showStatus('Ошибка сети или сервера при запросе к локальному API.', 'error');
+            console.error(error);
+        } finally {
+            submitButton.disabled = false;
+            submitButton.textContent = 'Проверить матч';
+        }
+    });
+</script>
+</body>
+</html>
+
