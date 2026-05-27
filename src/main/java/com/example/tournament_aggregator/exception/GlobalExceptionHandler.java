@@ -14,6 +14,11 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleResourceNotFoundException(ResourceNotFoundException exception) {
+        return buildResponse(HttpStatus.NOT_FOUND, exception.getMessage());
+    }
+
     @ExceptionHandler(TeamNotFoundException.class)
     public ResponseEntity<Map<String, Object>> handleTeamNotFoundException(TeamNotFoundException exception) {
         return buildResponse(HttpStatus.NOT_FOUND, exception.getMessage());
