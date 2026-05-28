@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Детали турнира</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/main.css}" href="/css/main.css">
+</head>
+<body class="app-bg bg-body-tertiary">
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm sticky-top">
+    <div class="container py-1">
+        <a class="navbar-brand fw-semibold" th:href="@{/}"><i class="bi bi-trophy-fill me-2 text-warning"></i>Tournament Aggregator</a>
+        <div class="ms-auto d-flex flex-wrap gap-2 align-items-center">
+            <a class="btn btn-outline-light btn-sm" th:href="@{/tournaments}">Назад к турнирам</a>
+            <a class="btn btn-outline-light btn-sm" th:href="@{/match-check}">Проверка матча</a>
+            <a sec:authorize="hasRole('ADMIN')" th:if="${isAdmin}" class="btn btn-warning btn-sm fw-semibold" th:href="@{/admin/dashboard}">
+                <i class="bi bi-gear-fill me-1"></i>Админ-панель
+            </a>
+        </div>
+    </div>
+</nav>
+
+<main class="container py-5">
+    <div class="card border-0 shadow-lg rounded-4 mb-4">
+        <div class="card-body p-4 p-lg-5">
+            <div class="d-flex flex-wrap justify-content-between gap-3 align-items-start mb-4">
+                <div>
+                    <span class="badge text-bg-primary rounded-pill mb-3">Tournament detail</span>
+                    <h1 class="display-6 fw-bold mb-2" th:text="${tournament.name}">Tournament name</h1>
+                    <p class="text-secondary mb-0" th:text="${tournament.description != null ? tournament.description : 'Описание отсутствует'}">Description</p>
+                </div>
+                <div class="text-end">
+                    <span class="badge fs-6" th:classappend="${tournament.isActive} ? ' text-bg-success' : ' text-bg-secondary'"
+                          th:text="${tournament.isActive} ? 'Active' : 'Inactive'">Active</span>
+                </div>
+            </div>
+
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <div class="border rounded-3 p-3 bg-body-tertiary h-100">
+                        <div class="text-secondary small text-uppercase">Prize pool</div>
+                        <div class="fs-5 fw-semibold" th:text="${tournament.prizePool != null ? tournament.prizePool : '—'}">—</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="border rounded-3 p-3 bg-body-tertiary h-100">
+                        <div class="text-secondary small text-uppercase">Location</div>
+                        <div class="fs-5 fw-semibold" th:text="${tournament.location != null ? tournament.location : '—'}">—</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="border rounded-3 p-3 bg-body-tertiary h-100">
+                        <div class="text-secondary small text-uppercase">Teams</div>
+                        <div class="fs-5 fw-semibold" th:text="${tournament.teamCount}">0</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="border rounded-3 p-3 bg-body-tertiary h-100">
+                        <div class="text-secondary small text-uppercase">Matches</div>
+                        <div class="fs-5 fw-semibold" th:text="${tournament.matchCount}">0</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h2 class="h4 mb-0">Команды</h2>
+                        <span class="badge text-bg-primary" th:text="${tournament.teamCount}">0</span>
+                    </div>
+                    <div th:if="${#lists.isEmpty(tournament.teams)}" class="alert alert-light border">
+                        Команды ещё не добавлены.
+                    </div>
+                    <div class="vstack gap-2" th:unless="${#lists.isEmpty(tournament.teams)}">
+                        <div class="border rounded-3 p-3 bg-body-tertiary d-flex align-items-center justify-content-between" th:each="team : ${tournament.teams}">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="rounded-circle bg-primary-subtle text-primary d-inline-flex align-items-center justify-content-center" style="width: 2.5rem; height: 2.5rem;">
+                                    <i class="bi bi-people"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-semibold" th:text="${team.name}">Team name</div>
+                                    <div class="small text-secondary">
+                                        <span th:text="${team.tag}">TAG</span>
+                                        <span class="mx-1">•</span>
+                                        <span th:text="${team.winRate != null ? team.winRate : 0}">0</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <span class="badge text-bg-light text-dark" th:text="${team.totalMatches != null ? team.totalMatches : 0}">0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h2 class="h4 mb-0">Турнирная сетка</h2>
+                        <span class="text-secondary small">Сгруппировано по раундам</span>
+                    </div>
+
+                    <div th:if="${#lists.isEmpty(tournament.rounds)}" class="alert alert-light border">
+                        Пока нет матчей, поэтому сетка не заполнена.
+                    </div>
+
+                    <div class="d-flex flex-nowrap gap-3 overflow-auto pb-2" th:unless="${#lists.isEmpty(tournament.rounds)}">
+                        <div class="card border-0 shadow-sm flex-shrink-0" style="min-width: 21rem;" th:each="round : ${tournament.rounds}">
+                            <div class="card-header bg-dark text-white">
+                                <div class="fw-semibold" th:text="${round.title}">Раунд</div>
+                                <div class="small text-white-50">Раунд <span th:text="${round.roundNumber}">1</span></div>
+                            </div>
+                            <div class="card-body bg-body-tertiary">
+                                <div class="vstack gap-3" th:if="${!#lists.isEmpty(round.matches)}">
+                                    <div class="card border-0 shadow-sm" th:each="match : ${round.matches}">
+                                        <div class="card-body">
+                                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                                <span class="badge text-bg-primary">Match #<span th:text="${match.id}">1</span></span>
+                                                <span class="badge" th:classappend="${match.isCompleted} ? ' text-bg-success' : ' text-bg-warning'"
+                                                      th:text="${match.isCompleted} ? 'Completed' : 'Pending'">Pending</span>
+                                            </div>
+
+                                            <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                                                <div>
+                                                    <div class="fw-semibold" th:text="${match.team1 != null ? match.team1.name : 'TBD'}">Team 1</div>
+                                                    <div class="small text-secondary" th:text="${match.team1 != null ? match.team1.tag : ''}">TAG1</div>
+                                                </div>
+                                                <div class="fs-4 fw-bold" th:text="${match.team1Score != null ? match.team1Score : '—'}">—</div>
+                                            </div>
+                                            <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                                                <div>
+                                                    <div class="fw-semibold" th:text="${match.team2 != null ? match.team2.name : 'TBD'}">Team 2</div>
+                                                    <div class="small text-secondary" th:text="${match.team2 != null ? match.team2.tag : ''}">TAG2</div>
+                                                </div>
+                                                <div class="fs-4 fw-bold" th:text="${match.team2Score != null ? match.team2Score : '—'}">—</div>
+                                            </div>
+
+                                            <div class="d-flex justify-content-between align-items-center mt-3 small text-secondary">
+                                                <span><i class="bi bi-trophy me-1"></i><span th:text="${match.winnerName != null ? match.winnerName : 'Winner unknown'}">Winner</span></span>
+                                                <span th:text="${match.matchDate != null ? #temporals.format(match.matchDate, 'dd.MM.yyyy HH:mm') : 'No date'}">Date</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div th:if="${#lists.isEmpty(round.matches)}" class="alert alert-light border mb-0">В этом раунде ещё нет матчей.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+

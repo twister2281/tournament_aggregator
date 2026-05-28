@@ -8,12 +8,15 @@ import com.example.tournament_aggregator.domain.entity.Tournament;
 import com.example.tournament_aggregator.domain.repository.TeamRepository;
 import com.example.tournament_aggregator.domain.repository.TournamentRepository;
 import com.example.tournament_aggregator.exception.ResourceNotFoundException;
+import com.example.tournament_aggregator.exception.TournamentNotFoundException;
 import com.example.tournament_aggregator.service.TournamentService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -26,8 +29,10 @@ public class TournamentServiceImpl implements TournamentService {
     private final TeamRepository teamRepository;
 
     @Override
+    @PreAuthorize("hasRole('ADMIN')")
     public TournamentResponse createTournament(TournamentRequest request) {
         validate(request);
+        ensureNameAvailable(request.getName(), null);
         Tournament tournament = Tournament.builder()
                 .name(request.getName().trim())
                 .description(normalize(request.getDescription()))
@@ -42,9 +47,11 @@ public class TournamentServiceImpl implements TournamentService {
     }
 
     @Override
+    @PreAuthorize("hasRole('ADMIN')")
     public TournamentResponse updateTournament(Long id, TournamentRequest request) {
         validate(request);
         Tournament tournament = getTournamentEntityById(id);
+        ensureNameAvailable(request.getName(), id);
         tournament.setName(request.getName().trim());
         tournament.setDescription(normalize(request.getDescription()));
         tournament.setPrizePool(request.getPrizePool());
@@ -68,11 +75,23 @@ public class TournamentServiceImpl implements TournamentService {
 
     @Override
     @Transactional(readOnly = true)
+    public TournamentResponse getTournamentByName(String name) {
+        if (name == null || name.isBlank()) {
+            throw new IllegalArgumentException("Tournament name must not be blank");
+        }
+        Tournament tournament = tournamentRepository.findByName(name.trim())
+                .orElseThrow(() -> new TournamentNotFoundException(name.trim()));
+        return toResponse(tournament);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public List<TournamentResponse> getAllTournaments() {
         return tournamentRepository.findAll().stream().map(this::toResponse).toList();
     }
 
     @Override
+    @PreAuthorize("hasRole('ADMIN')")
     public void deleteTournament(Long id) {
         Tournament tournament = getTournamentEntityById(id);
         tournamentRepository.delete(tournament);
@@ -117,6 +136,14 @@ public class TournamentServiceImpl implements TournamentService {
         if (request.getName() == null || request.getName().isBlank()) {
             throw new IllegalArgumentException("Tournament name must not be blank");
         }
+    }
+
+    private void ensureNameAvailable(String name, Long currentTournamentId) {
+        tournamentRepository.findByName(name.trim())
+                .filter(tournament -> !Objects.equals(tournament.getId(), currentTournamentId))
+                .ifPresent(tournament -> {
+                    throw new IllegalArgumentException("Tournament name is already taken");
+                });
     }
 
     private String normalize(String value) {

@@ -11,6 +11,8 @@ import java.util.Set;
 @Entity
 @Table(name = "matches")
 @Data
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@ToString(onlyExplicitlyIncluded = true)
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -18,6 +20,8 @@ public class Match {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @EqualsAndHashCode.Include
+    @ToString.Include
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -31,6 +35,9 @@ public class Match {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "team2_id", nullable = false)
     private Team team2;
+
+    @Builder.Default
+    private Integer roundNumber = 1;
 
     @Column(name = "team1_score")
     private Integer team1Score;

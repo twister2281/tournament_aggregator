@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Управление турнирами</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/main.css}" href="/css/main.css">
+</head>
+<body class="app-bg bg-body-tertiary">
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm sticky-top">
+    <div class="container py-1">
+        <a class="navbar-brand fw-semibold" th:href="@{/}"><i class="bi bi-trophy-fill me-2 text-warning"></i>Tournament Aggregator</a>
+        <div class="ms-auto d-flex flex-wrap gap-2 align-items-center">
+            <a class="btn btn-outline-light btn-sm" th:href="@{/admin/dashboard}">Дашборд</a>
+            <a class="btn btn-outline-light btn-sm" th:href="@{/tournaments}">Публичные турниры</a>
+            <form th:action="@{/logout}" method="post" class="d-inline">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                <button type="submit" class="btn btn-outline-light btn-sm">Выйти</button>
+            </form>
+        </div>
+    </div>
+</nav>
+
+<main class="container py-5">
+    <div class="row align-items-end g-3 mb-4">
+        <div class="col-lg-8">
+            <span class="badge text-bg-warning rounded-pill mb-3">Админ-страница турниров</span>
+            <h1 class="display-6 fw-bold mb-2">Создание турнира и редактирование сетки</h1>
+            <p class="text-secondary mb-0">Здесь можно создать новый турнир, добавить матчи и спокойно редактировать раунды прямо на одной странице.</p>
+        </div>
+        <div class="col-lg-4 text-lg-end">
+            <div class="d-inline-flex gap-2 flex-wrap justify-content-lg-end">
+                <span class="badge text-bg-primary fs-6 px-3 py-2">Команд: <span th:text="${#lists.size(teams)}">0</span></span>
+                <span class="badge text-bg-success fs-6 px-3 py-2">Турниров: <span th:text="${#lists.size(tournaments)}">0</span></span>
+            </div>
+        </div>
+    </div>
+
+    <div th:if="${successMessage}" class="alert alert-success shadow-sm" th:text="${successMessage}"></div>
+    <div th:if="${tournamentFormError}" class="alert alert-danger shadow-sm" th:text="${tournamentFormError}"></div>
+    <div th:if="${matchFormError}" class="alert alert-danger shadow-sm" th:text="${matchFormError}"></div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-lg-5">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-body p-4 p-lg-5">
+                    <div class="d-flex align-items-center justify-content-between mb-4">
+                        <div>
+                            <div class="text-uppercase small text-secondary mb-1">Создание</div>
+                            <h2 class="h3 fw-semibold mb-0">Новый турнир</h2>
+                        </div>
+                        <span class="badge text-bg-success">Create</span>
+                    </div>
+
+                    <form th:action="@{/admin/tournaments}" th:object="${tournamentRequest}" method="post" class="vstack gap-3">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+
+                        <div>
+                            <label for="tournamentName" class="form-label">Название</label>
+                            <input id="tournamentName" type="text" class="form-control form-control-lg" th:field="*{name}" placeholder="Например, Oris Championship 2026">
+                            <div class="text-danger small mt-1" th:errors="*{name}"></div>
+                        </div>
+
+                        <div>
+                            <label for="tournamentDescription" class="form-label">Описание</label>
+                            <textarea id="tournamentDescription" class="form-control" rows="3" th:field="*{description}" placeholder="Описание турнира"></textarea>
+                            <div class="text-danger small mt-1" th:errors="*{description}"></div>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="prizePool" class="form-label">Prize pool</label>
+                                <input id="prizePool" type="number" step="0.01" min="0" class="form-control" th:field="*{prizePool}" placeholder="50000">
+                                <div class="text-danger small mt-1" th:errors="*{prizePool}"></div>
+                            </div>
+                            <div class="col-md-6 d-flex align-items-end">
+                                <div class="form-check form-switch mb-2">
+                                    <input class="form-check-input" type="checkbox" id="isActive" th:field="*{isActive}">
+                                    <label class="form-check-label" for="isActive">Активный турнир</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="startDate" class="form-label">Дата начала</label>
+                                <input id="startDate" type="datetime-local" class="form-control" th:field="*{startDate}">
+                                <div class="text-danger small mt-1" th:errors="*{startDate}"></div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="endDate" class="form-label">Дата окончания</label>
+                                <input id="endDate" type="datetime-local" class="form-control" th:field="*{endDate}">
+                                <div class="text-danger small mt-1" th:errors="*{endDate}"></div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="location" class="form-label">Локация</label>
+                            <input id="location" type="text" class="form-control" th:field="*{location}" placeholder="Online / EU West">
+                            <div class="text-danger small mt-1" th:errors="*{location}"></div>
+                        </div>
+
+                        <div>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <label class="form-label mb-0">Команды турнира</label>
+                                <span class="badge text-bg-light text-dark" th:text="${#lists.size(teams)}">0</span>
+                            </div>
+                            <div class="border rounded-3 p-3 bg-body-tertiary" style="max-height: 16rem; overflow: auto;">
+                                <div th:if="${#lists.isEmpty(teams)}" class="text-secondary">Сначала добавь команды на дашборде.</div>
+                                <div class="form-check" th:each="team : ${teams}">
+                                    <input class="form-check-input" type="checkbox" th:field="*{teamIds}" th:value="${team.id}" th:id="'create-team-' + ${team.id}">
+                                    <label class="form-check-label" th:for="'create-team-' + ${team.id}">
+                                        <span class="fw-semibold" th:text="${team.name}">Team</span>
+                                        <span class="text-secondary">(<span th:text="${team.tag}">TAG</span>)</span>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="text-danger small mt-1" th:errors="*{teamIds}"></div>
+                        </div>
+
+                        <button type="submit" class="btn btn-success btn-lg w-100 mt-2">
+                            <i class="bi bi-plus-circle me-2"></i>Создать турнир
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-7">
+            <div class="card border-0 shadow-sm rounded-4 h-100 bg-dark text-white">
+                <div class="card-body p-4 p-lg-5 d-flex flex-column justify-content-between">
+                    <div>
+                        <div class="text-uppercase small text-white-50 mb-1">Сетка и раунды</div>
+                        <h2 class="h3 fw-semibold mb-3">Выбор турнира</h2>
+                        <p class="text-white-50 mb-4">Выбери турнир и сразу откроешь его сетку с редактированием матчей, раундов, счёта и победителя.</p>
+                    </div>
+
+                    <form method="get" th:action="@{/admin/tournaments}" class="row g-2 align-items-end">
+                        <div class="col-md-8">
+                            <label for="tournamentSelect" class="form-label text-white-50">Турнир</label>
+                            <select id="tournamentSelect" name="tournamentId" class="form-select form-select-lg">
+                                <option th:if="${#lists.isEmpty(tournaments)}" value="">Турниров пока нет</option>
+                                <option th:each="tournament : ${tournaments}"
+                                        th:value="${tournament.id}"
+                                        th:selected="${selectedTournamentId != null and selectedTournamentId == tournament.id}"
+                                        th:text="${tournament.name}">Tournament</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 d-grid">
+                            <button type="submit" class="btn btn-warning btn-lg">Открыть</button>
+                        </div>
+                    </form>
+
+                    <div class="d-flex flex-wrap gap-2 mt-4">
+                        <a class="btn btn-outline-light btn-sm" th:href="@{/admin/dashboard}">К дашборду</a>
+                        <a class="btn btn-outline-light btn-sm" th:href="@{/tournaments}">Публичная сетка</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <section class="mb-4" th:if="${selectedTournament != null}">
+        <div class="card border-0 shadow-sm rounded-4 mb-4">
+            <div class="card-body p-4 p-lg-5">
+                <div class="d-flex flex-wrap justify-content-between gap-3 align-items-start mb-4">
+                    <div>
+                        <span class="badge text-bg-primary rounded-pill mb-3">Выбранный турнир</span>
+                        <h2 class="display-6 fw-bold mb-2" th:text="${selectedTournament.name}">Tournament name</h2>
+                        <p class="text-secondary mb-0" th:text="${selectedTournament.description != null ? selectedTournament.description : 'Описание отсутствует'}">Description</p>
+                    </div>
+                    <div class="text-end">
+                        <span class="badge fs-6" th:classappend="${selectedTournament.isActive} ? ' text-bg-success' : ' text-bg-secondary'"
+                              th:text="${selectedTournament.isActive} ? 'Active' : 'Inactive'">Active</span>
+                    </div>
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <div class="border rounded-3 p-3 bg-body-tertiary h-100">
+                            <div class="text-secondary small text-uppercase">Prize pool</div>
+                            <div class="fs-5 fw-semibold" th:text="${selectedTournament.prizePool != null ? selectedTournament.prizePool : '—'}">—</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="border rounded-3 p-3 bg-body-tertiary h-100">
+                            <div class="text-secondary small text-uppercase">Location</div>
+                            <div class="fs-5 fw-semibold" th:text="${selectedTournament.location != null ? selectedTournament.location : '—'}">—</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="border rounded-3 p-3 bg-body-tertiary h-100">
+                            <div class="text-secondary small text-uppercase">Teams</div>
+                            <div class="fs-5 fw-semibold" th:text="${selectedTournament.teamCount}">0</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="border rounded-3 p-3 bg-body-tertiary h-100">
+                            <div class="text-secondary small text-uppercase">Matches</div>
+                            <div class="fs-5 fw-semibold" th:text="${selectedTournament.matchCount}">0</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4 mb-4">
+            <div class="col-lg-4">
+                <div class="card border-0 shadow-sm rounded-4 h-100">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h3 class="h5 mb-0">Команды турнира</h3>
+                            <span class="badge text-bg-primary" th:text="${#lists.size(selectedTournament.teams)}">0</span>
+                        </div>
+                        <div th:if="${#lists.isEmpty(selectedTournament.teams)}" class="alert alert-light border mb-0">В турнире пока нет команд.</div>
+                        <div class="vstack gap-2" th:unless="${#lists.isEmpty(selectedTournament.teams)}">
+                            <div class="border rounded-3 p-3 bg-body-tertiary d-flex align-items-center justify-content-between" th:each="team : ${selectedTournament.teams}">
+                                <div>
+                                    <div class="fw-semibold" th:text="${team.name}">Team</div>
+                                    <div class="small text-secondary">
+                                        <span th:text="${team.tag}">TAG</span>
+                                        <span class="mx-1">•</span>
+                                        <span th:text="${team.totalMatches != null ? team.totalMatches : 0}">0</span> матчей
+                                    </div>
+                                </div>
+                                <span class="badge text-bg-light text-dark" th:text="${team.winRate != null ? team.winRate : 0}">0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-8">
+                <div class="card border-0 shadow-sm rounded-4 h-100">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div>
+                                <h3 class="h4 mb-0">Добавить матч в сетку</h3>
+                                <div class="text-secondary small">Создаёт новый матч внутри выбранного турнира.</div>
+                            </div>
+                            <span class="badge text-bg-success">New match</span>
+                        </div>
+
+                        <form th:action="@{'/admin/tournaments/' + ${selectedTournamentId} + '/matches'}" method="post" class="vstack gap-3">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                            <input type="hidden" name="tournamentId" th:value="${selectedTournamentId}" />
+
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Команда 1</label>
+                                    <select name="team1Id" class="form-select" required>
+                                        <option value="" selected disabled>Выбери команду</option>
+                                        <option th:each="team : ${selectedTournament.teams}" th:value="${team.id}" th:text="${team.name}">Team</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Команда 2</label>
+                                    <select name="team2Id" class="form-select" required>
+                                        <option value="" selected disabled>Выбери команду</option>
+                                        <option th:each="team : ${selectedTournament.teams}" th:value="${team.id}" th:text="${team.name}">Team</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="row g-3">
+                                <div class="col-md-3">
+                                    <label class="form-label">Раунд</label>
+                                    <input type="number" name="roundNumber" class="form-control" min="1" value="1">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Счёт 1</label>
+                                    <input type="number" name="team1Score" class="form-control" min="0" placeholder="0">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Счёт 2</label>
+                                    <input type="number" name="team2Score" class="form-control" min="0" placeholder="0">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Статус</label>
+                                    <select name="isCompleted" class="form-select">
+                                        <option value="false" selected>Не завершён</option>
+                                        <option value="true">Завершён</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Дата матча</label>
+                                    <input type="datetime-local" name="matchDate" class="form-control">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Победитель</label>
+                                    <select name="winnerId" class="form-select">
+                                        <option value="">Не выбран</option>
+                                        <option th:each="team : ${selectedTournament.teams}" th:value="${team.id}" th:text="${team.name}">Team</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn btn-success btn-lg w-100">
+                                <i class="bi bi-plus-circle me-2"></i>Добавить матч
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div th:if="${#lists.isEmpty(selectedTournament.rounds)}" class="alert alert-info shadow-sm border-0">
+            В этом турнире пока нет матчей. Добавь первый матч выше, чтобы появилась сетка по раундам.
+        </div>
+
+        <div class="vstack gap-4" th:unless="${#lists.isEmpty(selectedTournament.rounds)}">
+            <div class="card border-0 shadow-sm rounded-4" th:each="round : ${selectedTournament.rounds}">
+                <div class="card-header bg-dark text-white py-3 px-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="fw-semibold h5 mb-0" th:text="${round.title}">Раунд</div>
+                            <div class="small text-white-50">Раунд <span th:text="${round.roundNumber}">1</span></div>
+                        </div>
+                        <span class="badge text-bg-light text-dark" th:text="${#lists.size(round.matches)}">0</span>
+                    </div>
+                </div>
+                <div class="card-body bg-body-tertiary p-4">
+                    <div class="row g-4" th:if="${!#lists.isEmpty(round.matches)}">
+                        <div class="col-lg-6" th:each="match : ${round.matches}">
+                            <div class="card border-0 shadow-sm rounded-4 h-100">
+                                <div class="card-body p-4">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <div>
+                                            <div class="text-uppercase small text-secondary mb-1">Матч</div>
+                                            <h4 class="h5 mb-0">#<span th:text="${match.id}">1</span></h4>
+                                        </div>
+                                        <span class="badge" th:classappend="${match.isCompleted} ? ' text-bg-success' : ' text-bg-warning'"
+                                              th:text="${match.isCompleted} ? 'Завершён' : 'В процессе'">Pending</span>
+                                    </div>
+
+                                    <form th:action="@{'/admin/tournaments/' + ${selectedTournamentId} + '/matches/' + ${match.id}}" method="post" class="vstack gap-3">
+                                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                                        <input type="hidden" name="tournamentId" th:value="${selectedTournamentId}" />
+
+                                        <div class="row g-3">
+                                            <div class="col-md-6">
+                                                <label class="form-label">Команда 1</label>
+                                                <select name="team1Id" class="form-select" required>
+                                                    <option th:each="team : ${selectedTournament.teams}"
+                                                            th:value="${team.id}"
+                                                            th:selected="${match.team1 != null and match.team1.id == team.id}"
+                                                            th:text="${team.name}">Team</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label">Команда 2</label>
+                                                <select name="team2Id" class="form-select" required>
+                                                    <option th:each="team : ${selectedTournament.teams}"
+                                                            th:value="${team.id}"
+                                                            th:selected="${match.team2 != null and match.team2.id == team.id}"
+                                                            th:text="${team.name}">Team</option>
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <div class="row g-3">
+                                            <div class="col-md-3">
+                                                <label class="form-label">Раунд</label>
+                                                <input type="number" name="roundNumber" class="form-control" min="1" th:value="${match.roundNumber}">
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label class="form-label">Счёт 1</label>
+                                                <input type="number" name="team1Score" class="form-control" min="0" th:value="${match.team1Score}">
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label class="form-label">Счёт 2</label>
+                                                <input type="number" name="team2Score" class="form-control" min="0" th:value="${match.team2Score}">
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label class="form-label">Статус</label>
+                                                <select name="isCompleted" class="form-select">
+                                                    <option value="false" th:selected="${match.isCompleted != null and !match.isCompleted}">Не завершён</option>
+                                                    <option value="true" th:selected="${match.isCompleted != null and match.isCompleted}">Завершён</option>
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <div class="row g-3">
+                                            <div class="col-md-6">
+                                                <label class="form-label">Дата матча</label>
+                                                <input type="datetime-local" name="matchDate" class="form-control"
+                                                       th:value="${match.matchDate != null ? #temporals.format(match.matchDate, 'yyyy-MM-dd''T''HH:mm') : ''}">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label">Победитель</label>
+                                                <select name="winnerId" class="form-select">
+                                                    <option value="" th:selected="${match.winnerId == null}">Не выбран</option>
+                                                    <option th:each="team : ${selectedTournament.teams}"
+                                                            th:value="${team.id}"
+                                                            th:selected="${match.winnerId != null and match.winnerId == team.id}"
+                                                            th:text="${team.name}">Team</option>
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <button type="submit" class="btn btn-primary w-100">
+                                            <i class="bi bi-save me-2"></i>Сохранить матч
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div th:if="${#lists.isEmpty(round.matches)}" class="alert alert-light border mb-0">В этом раунде ещё нет матчей.</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div th:if="${selectedTournament == null}" class="alert alert-info shadow-sm border-0">
+        Пока не выбран турнир. Создай новый турнир выше или выбери существующий в селекте справа.
+    </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

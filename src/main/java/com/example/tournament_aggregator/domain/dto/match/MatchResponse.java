@@ -19,6 +19,7 @@ public class MatchResponse {
     private Long tournamentId;
     private Long team1Id;
     private Long team2Id;
+    private Integer roundNumber;
     private Integer team1Score;
     private Integer team2Score;
     private LocalDateTime matchDate;

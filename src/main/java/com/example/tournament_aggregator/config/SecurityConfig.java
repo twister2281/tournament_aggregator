@@ -20,6 +20,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.ignoringRequestMatchers("/api/**"))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/", "/index", "/login", "/register", "/error", "/auth/steam", "/auth/steam/**").permitAll()
+                        .requestMatchers("/tournaments", "/tournaments/**").permitAll()
                         .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**").permitAll()
                         .requestMatchers("/swagger-ui/**", "/api-docs/**", "/swagger-ui.html", "/v3/**").permitAll()
                         .requestMatchers("/api/integration/dota/team/**").permitAll()

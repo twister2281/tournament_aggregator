@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<html lang="ru" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -19,7 +19,11 @@
         </button>
         <div class="collapse navbar-collapse" id="mainNav">
             <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-2">
+                <li class="nav-item"><a class="nav-link" th:href="@{/tournaments}">Турниры</a></li>
                 <li class="nav-item"><a class="nav-link" th:href="@{/match-check}">Проверка матча</a></li>
+                <li class="nav-item" sec:authorize="hasRole('ADMIN')" th:if="${isAdmin}">
+                    <a class="nav-link text-warning fw-semibold" th:href="@{/admin/dashboard}">Админ-панель</a>
+                </li>
                 <li class="nav-item" th:if="${!isAuthenticated}"><a class="nav-link" th:href="@{/register}">Регистрация</a></li>
                 <li class="nav-item" th:if="${!isAuthenticated}"><a class="nav-link" th:href="@{/login}">Вход</a></li>
                 <li class="nav-item" th:if="${!isAuthenticated}">
@@ -57,8 +61,14 @@
                 Сайт объединяет регистрацию, обычный вход, Steam-авторизацию, REST API и проверку матчей OpenDota в одном проекте.
             </p>
             <div class="d-flex flex-wrap gap-2">
+                <a th:href="@{/tournaments}" class="btn btn-outline-secondary btn-lg">
+                    <i class="bi bi-grid-3x3-gap me-2"></i>Турниры
+                </a>
                 <a th:href="@{/match-check}" class="btn btn-primary btn-lg">
                     <i class="bi bi-search me-2"></i>Проверить матч
+                </a>
+                <a sec:authorize="hasRole('ADMIN')" th:if="${isAdmin}" th:href="@{/admin/dashboard}" class="btn btn-warning btn-lg">
+                    <i class="bi bi-gear-fill me-2"></i>Админ-панель
                 </a>
                 <a th:if="${!isAuthenticated}" th:href="@{/register}" class="btn btn-outline-primary btn-lg">
                     <i class="bi bi-person-plus me-2"></i>Регистрация

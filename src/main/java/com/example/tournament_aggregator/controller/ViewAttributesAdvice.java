@@ -36,10 +36,28 @@ public class ViewAttributesAdvice {
         return null;
     }
 
+    @ModelAttribute("isAdmin")
+    public boolean isAdmin(Authentication authentication) {
+        return hasAdminRole(authentication);
+    }
+
     private boolean hasAuthenticatedUser(Authentication authentication) {
         return authentication != null
                 && authentication.isAuthenticated()
                 && !(authentication instanceof AnonymousAuthenticationToken);
+    }
+
+    private boolean hasAdminRole(Authentication authentication) {
+        if (!hasAuthenticatedUser(authentication)) {
+            return false;
+        }
+
+        for (GrantedAuthority authority : authentication.getAuthorities()) {
+            if ("ROLE_ADMIN".equals(authority.getAuthority())) {
+                return true;
+            }
+        }
+        return false;
     }
 }
 

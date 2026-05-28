@@ -30,6 +30,8 @@ public class MatchRequest {
     @PositiveOrZero(message = "Team 2 score must be zero or positive")
     private Integer team2Score;
 
+    private Integer roundNumber;
+
     private LocalDateTime matchDate;
     private Boolean isCompleted;
     private Long winnerId;

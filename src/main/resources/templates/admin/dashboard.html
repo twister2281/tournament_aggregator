@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Админ-панель</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/main.css}" href="/css/main.css">
+</head>
+<body class="app-bg bg-body-tertiary">
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm sticky-top">
+    <div class="container py-1">
+        <a class="navbar-brand fw-semibold" th:href="@{/}"><i class="bi bi-trophy-fill me-2 text-warning"></i>Tournament Aggregator</a>
+        <div class="ms-auto d-flex flex-wrap gap-2 align-items-center">
+            <a class="btn btn-outline-light btn-sm" th:href="@{/}">Главная</a>
+            <a class="btn btn-warning btn-sm fw-semibold" th:href="@{/admin/dashboard}">
+                <i class="bi bi-gear-fill me-1"></i>Админ-панель
+            </a>
+            <form th:action="@{/logout}" method="post" class="d-inline">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                <button type="submit" class="btn btn-outline-light btn-sm">Выйти</button>
+            </form>
+        </div>
+    </div>
+</nav>
+
+<main class="container py-5">
+    <div class="row align-items-end g-3 mb-4">
+        <div class="col-lg-8">
+            <span class="badge text-bg-warning rounded-pill mb-3">Только для администраторов</span>
+            <h1 class="display-6 fw-bold mb-2">Админ-панель управления</h1>
+            <p class="text-secondary mb-0">Создавай команды прямо здесь, а турниры и сетку по раундам редактируй на отдельной странице управления.</p>
+        </div>
+        <div class="col-lg-4 text-lg-end">
+            <div class="d-inline-flex gap-2 flex-wrap">
+                <span class="badge text-bg-primary fs-6 px-3 py-2">Команд: <span th:text="${#lists.size(teams)}">0</span></span>
+                <span class="badge text-bg-success fs-6 px-3 py-2">Турниров: <span th:text="${#lists.size(tournaments)}">0</span></span>
+            </div>
+        </div>
+    </div>
+
+    <div th:if="${successMessage}" class="alert alert-success shadow-sm" th:text="${successMessage}"></div>
+    <div th:if="${teamFormError}" class="alert alert-danger shadow-sm" th:text="${teamFormError}"></div>
+    <div th:if="${tournamentFormError}" class="alert alert-danger shadow-sm" th:text="${tournamentFormError}"></div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-body p-4 p-lg-5">
+                    <div class="d-flex align-items-center justify-content-between mb-4">
+                        <div>
+                            <div class="text-uppercase small text-secondary mb-1">Команды</div>
+                            <h2 class="h3 fw-semibold mb-0">Создать команду</h2>
+                        </div>
+                        <span class="badge text-bg-primary">Team</span>
+                    </div>
+
+                    <form th:action="@{/admin/teams}" th:object="${teamRequest}" method="post" class="vstack gap-3">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+
+                        <div>
+                            <label for="teamName" class="form-label">Название</label>
+                            <input id="teamName" type="text" class="form-control form-control-lg" th:field="*{name}" placeholder="Например, Aurora United">
+                            <div class="text-danger small mt-1" th:errors="*{name}"></div>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label for="teamTag" class="form-label">Тег</label>
+                                <input id="teamTag" type="text" class="form-control" th:field="*{tag}" placeholder="AUR">
+                                <div class="text-danger small mt-1" th:errors="*{tag}"></div>
+                            </div>
+                            <div class="col-md-8">
+                                <label for="teamLogoUrl" class="form-label">Logo URL</label>
+                                <input id="teamLogoUrl" type="url" class="form-control" th:field="*{logoUrl}" placeholder="https://...">
+                                <div class="text-danger small mt-1" th:errors="*{logoUrl}"></div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="teamDescription" class="form-label">Описание</label>
+                            <textarea id="teamDescription" class="form-control" rows="4" th:field="*{description}" placeholder="Краткое описание команды"></textarea>
+                            <div class="text-danger small mt-1" th:errors="*{description}"></div>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="teamWinRate" class="form-label">Win rate</label>
+                                <input id="teamWinRate" type="number" step="0.01" min="0" class="form-control" th:field="*{winRate}" placeholder="0.0">
+                                <div class="text-danger small mt-1" th:errors="*{winRate}"></div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="teamTotalMatches" class="form-label">Всего матчей</label>
+                                <input id="teamTotalMatches" type="number" step="1" min="0" class="form-control" th:field="*{totalMatches}" placeholder="0">
+                                <div class="text-danger small mt-1" th:errors="*{totalMatches}"></div>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-lg w-100 mt-2">
+                            <i class="bi bi-plus-circle me-2"></i>Создать команду
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm rounded-4 h-100 bg-dark text-white">
+                <div class="card-body p-4 p-lg-5 d-flex flex-column justify-content-between">
+                    <div>
+                        <div class="text-uppercase small text-white-50 mb-1">Турниры</div>
+                        <h2 class="h3 fw-semibold mb-3">Отдельная страница управления</h2>
+                        <p class="text-white-50 mb-4">На отдельной странице ты создаёшь турнир, а потом редактируешь каждый раунд и матч через удобные формы.</p>
+                    </div>
+                    <div class="d-grid gap-2">
+                        <a class="btn btn-warning btn-lg" th:href="@{/admin/tournaments}">
+                            <i class="bi bi-trophy-fill me-2"></i>Управление турнирами и сеткой
+                        </a>
+                        <a class="btn btn-outline-light btn-lg" th:href="@{/admin/tournaments}">
+                            <i class="bi bi-pencil-square me-2"></i>Создать турнир
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h2 class="h4 mb-0">Текущие команды</h2>
+                        <span class="badge text-bg-primary" th:text="${#lists.size(teams)}">0</span>
+                    </div>
+                    <div th:if="${#lists.isEmpty(teams)}" class="alert alert-light border mb-0">Команд пока нет.</div>
+                    <div class="list-group list-group-flush" th:unless="${#lists.isEmpty(teams)}">
+                        <div class="list-group-item px-0 d-flex justify-content-between align-items-center" th:each="team : ${teams}">
+                            <div>
+                                <div class="fw-semibold" th:text="${team.name}">Team</div>
+                                <div class="small text-secondary">
+                                    <span th:text="${team.tag}">TAG</span>
+                                    <span class="mx-1">•</span>
+                                    <span th:text="${team.totalMatches != null ? team.totalMatches : 0}">0</span> матчей
+                                </div>
+                            </div>
+                            <span class="badge text-bg-light text-dark" th:text="${team.winRate != null ? team.winRate : 0}">0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h2 class="h4 mb-0">Текущие турниры</h2>
+                        <span class="badge text-bg-success" th:text="${#lists.size(tournaments)}">0</span>
+                    </div>
+                    <div th:if="${#lists.isEmpty(tournaments)}" class="alert alert-light border mb-0">Турниров пока нет.</div>
+                    <div class="vstack gap-2" th:unless="${#lists.isEmpty(tournaments)}">
+                        <div class="border rounded-3 p-3 bg-body-tertiary" th:each="tournament : ${tournaments}">
+                            <div class="d-flex justify-content-between align-items-start gap-3">
+                                <div>
+                                    <div class="fw-semibold" th:text="${tournament.name}">Tournament</div>
+                                    <div class="small text-secondary" th:text="${tournament.location != null ? tournament.location : '—'}">Location</div>
+                                </div>
+                                <span class="badge" th:classappend="${tournament.isActive} ? ' text-bg-success' : ' text-bg-secondary'"
+                                      th:text="${tournament.isActive} ? 'Active' : 'Inactive'">Active</span>
+                            </div>
+                            <div class="d-flex gap-3 small text-secondary mt-2">
+                                <span><i class="bi bi-people me-1"></i><span th:text="${tournament.teamCount}">0</span></span>
+                                <span><i class="bi bi-controller me-1"></i><span th:text="${tournament.matchCount}">0</span></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

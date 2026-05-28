@@ -13,6 +13,8 @@ public interface TournamentService {
 
     TournamentResponse getTournamentById(Long id);
 
+    TournamentResponse getTournamentByName(String name);
+
     List<TournamentResponse> getAllTournaments();
 
     void deleteTournament(Long id);

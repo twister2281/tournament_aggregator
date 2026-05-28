@@ -32,6 +32,7 @@ public class MatchServiceImpl implements MatchService {
                 .tournament(resolveTournament(request.getTournamentId()))
                 .team1(resolveTeam(request.getTeam1Id()))
                 .team2(resolveTeam(request.getTeam2Id()))
+                .roundNumber(request.getRoundNumber() != null ? request.getRoundNumber() : 1)
                 .team1Score(request.getTeam1Score())
                 .team2Score(request.getTeam2Score())
                 .matchDate(request.getMatchDate())
@@ -48,6 +49,7 @@ public class MatchServiceImpl implements MatchService {
         match.setTournament(resolveTournament(request.getTournamentId()));
         match.setTeam1(resolveTeam(request.getTeam1Id()));
         match.setTeam2(resolveTeam(request.getTeam2Id()));
+        match.setRoundNumber(request.getRoundNumber() != null ? request.getRoundNumber() : 1);
         match.setTeam1Score(request.getTeam1Score());
         match.setTeam2Score(request.getTeam2Score());
         match.setMatchDate(request.getMatchDate());
@@ -96,6 +98,7 @@ public class MatchServiceImpl implements MatchService {
                 .tournamentId(match.getTournament() != null ? match.getTournament().getId() : null)
                 .team1Id(match.getTeam1() != null ? match.getTeam1().getId() : null)
                 .team2Id(match.getTeam2() != null ? match.getTeam2().getId() : null)
+                .roundNumber(match.getRoundNumber())
                 .team1Score(match.getTeam1Score())
                 .team2Score(match.getTeam2Score())
                 .matchDate(match.getMatchDate())

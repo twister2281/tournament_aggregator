@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -33,6 +34,11 @@ public class TournamentController {
     @GetMapping("/{id}")
     public ResponseEntity<TournamentResponse> getById(@PathVariable Long id) {
         return ResponseEntity.ok(tournamentService.getTournamentById(id));
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<TournamentResponse> getByName(@RequestParam String name) {
+        return ResponseEntity.ok(tournamentService.getTournamentByName(name));
     }
 
     @PostMapping

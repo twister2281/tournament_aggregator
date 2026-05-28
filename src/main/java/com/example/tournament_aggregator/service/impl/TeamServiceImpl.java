@@ -9,6 +9,7 @@ import com.example.tournament_aggregator.exception.TeamNotFoundException;
 import com.example.tournament_aggregator.mapper.TeamMapper;
 import com.example.tournament_aggregator.service.TeamService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,6 +24,7 @@ public class TeamServiceImpl implements TeamService {
     private final TeamMapper teamMapper;
 
     @Override
+    @PreAuthorize("hasRole('ADMIN')")
     public TeamResponse createTeam(TeamCreateRequest request) {
         validateRequest(request);
         Team team = teamMapper.toEntity(request);
@@ -30,6 +32,7 @@ public class TeamServiceImpl implements TeamService {
     }
 
     @Override
+    @PreAuthorize("hasRole('ADMIN')")
     public TeamResponse updateTeam(Long id, TeamUpdateRequest request) {
         validateRequest(request);
         Team existingTeam = getTeamEntityById(id);
@@ -52,6 +55,7 @@ public class TeamServiceImpl implements TeamService {
     }
 
     @Override
+    @PreAuthorize("hasRole('ADMIN')")
     public void deleteTeam(Long id) {
         if (!teamRepository.existsById(id)) {
             throw new TeamNotFoundException(id);
