@@ -10,5 +10,7 @@ public interface TournamentPageService {
     List<TournamentSummaryView> getTournamentSummaries();
 
     TournamentDetailView getTournamentDetail(Long id);
+
+    long countTournamentsWithAtLeastMatches(long minMatches);
 }
 

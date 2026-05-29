@@ -24,6 +24,31 @@ Spring Boot MVC/MPA проект с REST API, интеграцией с OpenDota
 mvn test
 ```
 
+## Запуск через Docker
+
+Проект можно поднять в трёх контейнерах:
+- `app` — Spring Boot приложение
+- `postgres` — PostgreSQL
+- `redis` — Redis для кеша
+
+```bash
+docker compose up --build
+```
+
+После старта приложение будет доступно на `http://localhost:8080`.
+
+Если нужно поднять контейнеры в фоне:
+
+```bash
+docker compose up --build -d
+```
+
+Остановить и удалить контейнеры можно так:
+
+```bash
+docker compose down
+```
+
 ## Тестовые данные
 
 Если хочешь сразу увидеть демо-турнир, список команд и готовую сетку, запускай приложение с профилем `dev`:

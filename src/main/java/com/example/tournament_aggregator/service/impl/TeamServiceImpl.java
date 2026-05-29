@@ -9,6 +9,8 @@ import com.example.tournament_aggregator.exception.TeamNotFoundException;
 import com.example.tournament_aggregator.mapper.TeamMapper;
 import com.example.tournament_aggregator.service.TeamService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +27,7 @@ public class TeamServiceImpl implements TeamService {
 
     @Override
     @PreAuthorize("hasRole('ADMIN')")
+    @CacheEvict(cacheNames = {"teams", "tournaments", "tournamentSummaries", "tournamentDetails"}, allEntries = true)
     public TeamResponse createTeam(TeamCreateRequest request) {
         validateRequest(request);
         Team team = teamMapper.toEntity(request);
@@ -33,6 +36,7 @@ public class TeamServiceImpl implements TeamService {
 
     @Override
     @PreAuthorize("hasRole('ADMIN')")
+    @CacheEvict(cacheNames = {"teams", "tournaments", "tournamentSummaries", "tournamentDetails"}, allEntries = true)
     public TeamResponse updateTeam(Long id, TeamUpdateRequest request) {
         validateRequest(request);
         Team existingTeam = getTeamEntityById(id);
@@ -42,12 +46,14 @@ public class TeamServiceImpl implements TeamService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(cacheNames = "teams", key = "#id")
     public TeamResponse getTeamById(Long id) {
         return teamMapper.toResponse(getTeamEntityById(id));
     }
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(cacheNames = "teams", key = "'all'" )
     public List<TeamResponse> getAllTeams() {
         return teamRepository.findAll().stream()
                 .map(teamMapper::toResponse)
@@ -56,6 +62,7 @@ public class TeamServiceImpl implements TeamService {
 
     @Override
     @PreAuthorize("hasRole('ADMIN')")
+    @CacheEvict(cacheNames = {"teams", "tournaments", "tournamentSummaries", "tournamentDetails"}, allEntries = true)
     public void deleteTeam(Long id) {
         if (!teamRepository.existsById(id)) {
             throw new TeamNotFoundException(id);

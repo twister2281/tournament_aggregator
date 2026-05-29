@@ -45,6 +45,7 @@ public class AdminController {
     @GetMapping("/dashboard")
     public String dashboard(Model model) {
         prepareModel(model);
+        model.addAttribute("tournamentsWith2Matches", tournamentPageService.countTournamentsWithAtLeastMatches(2));
         if (!model.containsAttribute("teamRequest")) {
             model.addAttribute("teamRequest", TeamCreateRequest.builder().build());
         }
@@ -98,7 +99,7 @@ public class AdminController {
                                    Model model,
                                    RedirectAttributes redirectAttributes) {
         if (bindingResult.hasErrors()) {
-            return renderTournamentManagementWithErrors(model, tournamentRequest, "tournamentFormError", "Проверь данные турнира.");
+            return renderTournamentManagementWithErrors(model, tournamentRequest, "Проверь данные турнира.");
         }
 
         try {
@@ -106,7 +107,7 @@ public class AdminController {
             redirectAttributes.addFlashAttribute("successMessage", "Турнир «" + createdTournament.getName() + "» создан.");
             return "redirect:/admin/tournaments?tournamentId=" + createdTournament.getId();
         } catch (IllegalArgumentException exception) {
-            return renderTournamentManagementWithErrors(model, tournamentRequest, "tournamentFormError", exception.getMessage());
+            return renderTournamentManagementWithErrors(model, tournamentRequest, exception.getMessage());
         }
     }
 
@@ -120,7 +121,7 @@ public class AdminController {
         matchRequest.setTournamentId(tournamentId);
 
         if (bindingResult.hasErrors()) {
-            return renderTournamentManagementWithErrors(model, null, "matchFormError", "Проверь данные матча.", tournamentId);
+            return renderTournamentManagementWithErrors(model, null, "Проверьте данные матча", tournamentId);
         }
 
         try {
@@ -128,7 +129,7 @@ public class AdminController {
             redirectAttributes.addFlashAttribute("successMessage", "Матч #" + matchId + " обновлён.");
             return "redirect:/admin/tournaments?tournamentId=" + tournamentId;
         } catch (IllegalArgumentException exception) {
-            return renderTournamentManagementWithErrors(model, null, "matchFormError", exception.getMessage(), tournamentId);
+            return renderTournamentManagementWithErrors(model, null, exception.getMessage(), tournamentId);
         }
     }
 
@@ -141,7 +142,7 @@ public class AdminController {
         matchRequest.setTournamentId(tournamentId);
 
         if (bindingResult.hasErrors()) {
-            return renderTournamentManagementWithErrors(model, null, "matchFormError", "Проверь данные нового матча.", tournamentId);
+            return renderTournamentManagementWithErrors(model, null, "Проверьте данные нового матча", tournamentId);
         }
 
         try {
@@ -149,7 +150,7 @@ public class AdminController {
             redirectAttributes.addFlashAttribute("successMessage", "Матч добавлен в турнир.");
             return "redirect:/admin/tournaments?tournamentId=" + tournamentId;
         } catch (IllegalArgumentException exception) {
-            return renderTournamentManagementWithErrors(model, null, "matchFormError", exception.getMessage(), tournamentId);
+            return renderTournamentManagementWithErrors(model, null, exception.getMessage(), tournamentId);
         }
     }
 
@@ -158,6 +159,7 @@ public class AdminController {
         List<TournamentSummaryView> tournaments = tournamentPageService.getTournamentSummaries();
         model.addAttribute("teams", teams);
         model.addAttribute("tournaments", tournaments);
+        model.addAttribute("tournamentsWith2Matches", tournamentPageService.countTournamentsWithAtLeastMatches(2));
     }
 
     private Long resolveTournamentId(Long requestedTournamentId, List<TournamentSummaryView> tournaments) {
@@ -176,14 +178,12 @@ public class AdminController {
 
     private String renderTournamentManagementWithErrors(Model model,
                                                         TournamentRequest tournamentRequest,
-                                                        String errorAttribute,
                                                         String errorMessage) {
-        return renderTournamentManagementWithErrors(model, tournamentRequest, errorAttribute, errorMessage, null);
+        return renderTournamentManagementWithErrors(model, tournamentRequest, errorMessage, null);
     }
 
     private String renderTournamentManagementWithErrors(Model model,
                                                         TournamentRequest tournamentRequest,
-                                                        String errorAttribute,
                                                         String errorMessage,
                                                         Long selectedTournamentId) {
         prepareModel(model);
@@ -203,7 +203,7 @@ public class AdminController {
 
         model.addAttribute("selectedTournamentId", resolvedTournamentId);
         model.addAttribute("selectedTournament", selectedTournament);
-        model.addAttribute(errorAttribute, errorMessage);
+        model.addAttribute("tournamentFormError", errorMessage);
         return "admin/tournaments";
     }
 }

@@ -36,6 +36,7 @@
             <div class="d-inline-flex gap-2 flex-wrap">
                 <span class="badge text-bg-primary fs-6 px-3 py-2">Команд: <span th:text="${#lists.size(teams)}">0</span></span>
                 <span class="badge text-bg-success fs-6 px-3 py-2">Турниров: <span th:text="${#lists.size(tournaments)}">0</span></span>
+                <span class="badge text-bg-dark fs-6 px-3 py-2">С 2+ матчами: <span th:text="${tournamentsWith2Matches}">0</span></span>
             </div>
         </div>
     </div>

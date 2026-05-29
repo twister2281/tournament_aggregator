@@ -12,6 +12,7 @@ import com.example.tournament_aggregator.domain.repository.TournamentRepository;
 import com.example.tournament_aggregator.exception.ResourceNotFoundException;
 import com.example.tournament_aggregator.service.TournamentPageService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,18 +30,24 @@ public class TournamentPageServiceImpl implements TournamentPageService {
     private final TournamentRepository tournamentRepository;
 
     @Override
+    @Cacheable(cacheNames = "tournamentSummaries", key = "'all'")
     public List<TournamentSummaryView> getTournamentSummaries() {
-        return tournamentRepository.findAll().stream()
-                .sorted(Comparator.comparing(Tournament::getStartDate, Comparator.nullsLast(Comparator.naturalOrder())).reversed())
+        return tournamentRepository.findAllOrderedForPublicView().stream()
                 .map(this::toSummaryView)
                 .toList();
     }
 
     @Override
+    @Cacheable(cacheNames = "tournamentDetails", key = "#id")
     public TournamentDetailView getTournamentDetail(Long id) {
         Tournament tournament = tournamentRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Tournament", id));
         return toDetailView(tournament);
+    }
+
+    @Override
+    public long countTournamentsWithAtLeastMatches(long minMatches) {
+        return tournamentRepository.findTournamentsWithAtLeastMatches(minMatches).size();
     }
 
     private TournamentSummaryView toSummaryView(Tournament tournament) {

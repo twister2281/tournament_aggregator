@@ -11,6 +11,8 @@ import com.example.tournament_aggregator.domain.repository.TournamentRepository;
 import com.example.tournament_aggregator.exception.ResourceNotFoundException;
 import com.example.tournament_aggregator.service.MatchService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,6 +28,7 @@ public class MatchServiceImpl implements MatchService {
     private final TeamRepository teamRepository;
 
     @Override
+    @CacheEvict(cacheNames = {"matches", "tournaments", "tournamentSummaries", "tournamentDetails"}, allEntries = true)
     public MatchResponse createMatch(MatchRequest request) {
         validate(request);
         Match match = Match.builder()
@@ -43,6 +46,7 @@ public class MatchServiceImpl implements MatchService {
     }
 
     @Override
+    @CacheEvict(cacheNames = {"matches", "tournaments", "tournamentSummaries", "tournamentDetails"}, allEntries = true)
     public MatchResponse updateMatch(Long id, MatchRequest request) {
         validate(request);
         Match match = getMatchEntityById(id);
@@ -62,17 +66,20 @@ public class MatchServiceImpl implements MatchService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(cacheNames = "matches", key = "#id")
     public MatchResponse getMatchById(Long id) {
         return toResponse(getMatchEntityById(id));
     }
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(cacheNames = "matches", key = "'all'")
     public List<MatchResponse> getAllMatches() {
         return matchRepository.findAll().stream().map(this::toResponse).toList();
     }
 
     @Override
+    @CacheEvict(cacheNames = {"matches", "tournaments", "tournamentSummaries", "tournamentDetails"}, allEntries = true)
     public void deleteMatch(Long id) {
         matchRepository.delete(getMatchEntityById(id));
     }

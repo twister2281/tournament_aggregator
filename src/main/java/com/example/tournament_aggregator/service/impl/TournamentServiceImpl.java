@@ -11,6 +11,7 @@ import com.example.tournament_aggregator.exception.ResourceNotFoundException;
 import com.example.tournament_aggregator.exception.TournamentNotFoundException;
 import com.example.tournament_aggregator.service.TournamentService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,6 +31,7 @@ public class TournamentServiceImpl implements TournamentService {
 
     @Override
     @PreAuthorize("hasRole('ADMIN')")
+    @CacheEvict(cacheNames = {"tournaments", "tournamentSummaries", "tournamentDetails"}, allEntries = true)
     public TournamentResponse createTournament(TournamentRequest request) {
         validate(request);
         ensureNameAvailable(request.getName(), null);
@@ -48,6 +50,7 @@ public class TournamentServiceImpl implements TournamentService {
 
     @Override
     @PreAuthorize("hasRole('ADMIN')")
+    @CacheEvict(cacheNames = {"tournaments", "tournamentSummaries", "tournamentDetails"}, allEntries = true)
     public TournamentResponse updateTournament(Long id, TournamentRequest request) {
         validate(request);
         Tournament tournament = getTournamentEntityById(id);
@@ -92,6 +95,7 @@ public class TournamentServiceImpl implements TournamentService {
 
     @Override
     @PreAuthorize("hasRole('ADMIN')")
+    @CacheEvict(cacheNames = {"tournaments", "tournamentSummaries", "tournamentDetails"}, allEntries = true)
     public void deleteTournament(Long id) {
         Tournament tournament = getTournamentEntityById(id);
         tournamentRepository.delete(tournament);
