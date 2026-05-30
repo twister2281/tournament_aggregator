@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>403 — Доступ запрещён</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/main.css}" href="/css/main.css">
+</head>
+<body class="app-bg bg-body-tertiary">
+<main class="container d-flex align-items-center justify-content-center min-vh-100 py-5">
+    <div class="card border-0 shadow-lg rounded-4 overflow-hidden" style="max-width: 760px; width: 100%;">
+        <div class="row g-0">
+            <div class="col-lg-5 bg-dark text-white p-4 p-lg-5 d-flex flex-column justify-content-between">
+                <div>
+                    <span class="badge text-bg-warning rounded-pill mb-3">403</span>
+                    <h1 class="display-5 fw-bold mb-3">Доступ запрещён</h1>
+                    <p class="text-white-50 mb-0">
+                        У вас нет прав для просмотра этой страницы.
+                    </p>
+                </div>
+                <div class="mt-4">
+                    <a th:href="@{/}" class="btn btn-warning w-100">
+                        <i class="bi bi-house-door-fill me-2"></i>На главную
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-7 p-4 p-lg-5">
+                <h2 class="h4 fw-semibold mb-2">Что делать дальше</h2>
+                <p class="text-secondary mb-4">
+                    Если вы уверены, что страница должна открываться, войдите под нужной учётной записью или обратитесь к администратору.
+                </p>
+
+                <div class="d-grid gap-2">
+                    <a th:href="@{/login}" class="btn btn-outline-primary btn-lg">Войти</a>
+                    <a th:href="@{/register}" class="btn btn-outline-secondary btn-lg">Регистрация</a>
+                    <a th:href="@{/}" class="btn btn-primary btn-lg">На главную</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+</body>
+</html>
