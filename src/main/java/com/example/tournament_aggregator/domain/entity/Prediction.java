@@ -7,7 +7,10 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "predictions")
+@Table(
+        name = "predictions",
+        uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "match_id"})
+)
 @Data
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @ToString(onlyExplicitlyIncluded = true)

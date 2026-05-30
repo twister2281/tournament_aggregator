@@ -20,6 +20,8 @@
         <div class="collapse navbar-collapse" id="mainNav">
             <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-2">
                 <li class="nav-item"><a class="nav-link" th:href="@{/tournaments}">Турниры</a></li>
+                <li class="nav-item"><a class="nav-link" th:href="@{/teams}">Команды</a></li>
+                <li class="nav-item" th:if="${isAuthenticated}"><a class="nav-link" th:href="@{/subscriptions}">Мои подписки</a></li>
                 <li class="nav-item"><a class="nav-link" th:href="@{/match-check}">Проверка матча</a></li>
                 <li class="nav-item" sec:authorize="hasRole('ADMIN')" th:if="${isAdmin}">
                     <a class="nav-link text-warning fw-semibold" th:href="@{/admin/dashboard}">Админ-панель</a>
@@ -52,13 +54,12 @@
     <section class="row align-items-center g-4 py-4 py-lg-5">
         <div class="col-lg-7">
             <span class="badge text-bg-primary rounded-pill mb-3">
-                Spring MVC • PostgreSQL • OpenDota • Steam OpenID
+                 OpenDota • Steam OpenID
             </span>
             <h1 class="display-5 fw-bold mb-3">
                 Турнирный агрегатор для команд, матчей и аналитики
             </h1>
             <p class="lead text-secondary mb-4">
-                Сайт объединяет регистрацию, обычный вход, Steam-авторизацию, REST API и проверку матчей OpenDota в одном проекте.
             </p>
             <div class="d-flex flex-wrap gap-2">
                 <a th:href="@{/tournaments}" class="btn btn-outline-secondary btn-lg">

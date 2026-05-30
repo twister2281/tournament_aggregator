@@ -62,9 +62,7 @@ SPRING_PROFILES_ACTIVE=dev ./mvnw spring-boot:run
 - 10 команд
 - 10 турниров
 - 10 матчей с `roundNumber`
-- 10 статистик игроков
 - 10 прогнозов
 - 10 подписок
 
 Главный турнир называется `Oris Championship 2026` и его можно открыть на странице `/tournaments`.
-

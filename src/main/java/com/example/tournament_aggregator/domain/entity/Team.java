@@ -48,10 +48,6 @@ public class Team {
     @Builder.Default
     private Set<Tournament> tournaments = new HashSet<>();
 
-    @OneToMany(mappedBy = "team", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    @Builder.Default
-    private Set<PlayerStatistic> playerStatistics = new HashSet<>();
-
     @OneToMany(mappedBy = "team", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private Set<UserSubscription> subscribers = new HashSet<>();

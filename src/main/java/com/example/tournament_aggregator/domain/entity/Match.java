@@ -57,10 +57,6 @@ public class Match {
 
     @OneToMany(mappedBy = "match", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
-    private Set<PlayerStatistic> playerStatistics = new HashSet<>();
-
-    @OneToMany(mappedBy = "match", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-    @Builder.Default
     private Set<Prediction> predictions = new HashSet<>();
 
     @CreationTimestamp

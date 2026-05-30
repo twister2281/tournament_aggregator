@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -28,13 +29,11 @@ public class PredictionServiceImpl implements PredictionService {
     @Override
     public PredictionResponse createPrediction(PredictionRequest request) {
         validate(request);
-        Prediction prediction = Prediction.builder()
-                .user(resolveUser(request.getUserId()))
-                .match(resolveMatch(request.getMatchId()))
-                .predictedWinnerId(request.getPredictedWinnerId())
-                .isCorrect(request.getIsCorrect())
-                .build();
-        return toResponse(predictionRepository.save(prediction));
+        return savePrediction(
+                resolveUser(request.getUserId()),
+                resolveMatch(request.getMatchId()),
+                request.getPredictedWinnerId()
+        );
     }
 
     @Override
@@ -44,8 +43,16 @@ public class PredictionServiceImpl implements PredictionService {
         prediction.setUser(resolveUser(request.getUserId()));
         prediction.setMatch(resolveMatch(request.getMatchId()));
         prediction.setPredictedWinnerId(request.getPredictedWinnerId());
-        prediction.setIsCorrect(request.getIsCorrect());
+        validatePredictionTarget(prediction.getMatch(), request.getPredictedWinnerId());
+        prediction.setIsCorrect(resolveCorrectness(prediction.getMatch(), request.getPredictedWinnerId()));
         return toResponse(predictionRepository.save(prediction));
+    }
+
+    @Override
+    public PredictionResponse saveUserPrediction(Long userId, Long matchId, Long predictedWinnerId) {
+        User user = resolveUser(userId);
+        Match match = resolveMatch(matchId);
+        return savePrediction(user, match, predictedWinnerId);
     }
 
     @Override
@@ -58,6 +65,21 @@ public class PredictionServiceImpl implements PredictionService {
     @Transactional(readOnly = true)
     public List<PredictionResponse> getAllPredictions() {
         return predictionRepository.findAll().stream().map(this::toResponse).toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<PredictionResponse> getPredictionsForUserAndTournament(Long userId, Long tournamentId) {
+        if (userId == null || tournamentId == null) {
+            return List.of();
+        }
+
+        return predictionRepository.findByUser_IdAndMatch_Tournament_Id(userId, tournamentId).stream()
+                .sorted(Comparator.comparing(
+                        prediction -> prediction.getMatch() != null ? prediction.getMatch().getMatchDate() : null,
+                        Comparator.nullsLast(Comparator.naturalOrder())))
+                .map(this::toResponse)
+                .toList();
     }
 
     @Override
@@ -80,6 +102,43 @@ public class PredictionServiceImpl implements PredictionService {
                 .orElseThrow(() -> new ResourceNotFoundException("Match", id));
     }
 
+    private PredictionResponse savePrediction(User user, Match match, Long predictedWinnerId) {
+        validatePredictionTarget(match, predictedWinnerId);
+
+        Prediction prediction = predictionRepository.findByUser_IdAndMatch_Id(user.getId(), match.getId())
+                .orElseGet(Prediction::new);
+        prediction.setUser(user);
+        prediction.setMatch(match);
+        prediction.setPredictedWinnerId(predictedWinnerId);
+        prediction.setIsCorrect(resolveCorrectness(match, predictedWinnerId));
+        return toResponse(predictionRepository.save(prediction));
+    }
+
+    private void validatePredictionTarget(Match match, Long predictedWinnerId) {
+        if (match == null) {
+            throw new IllegalArgumentException("Match must not be null");
+        }
+        if (Boolean.TRUE.equals(match.getIsCompleted())) {
+            throw new IllegalArgumentException("Predictions are allowed only for pending matches");
+        }
+        if (predictedWinnerId == null) {
+            throw new IllegalArgumentException("Predicted winner must not be null");
+        }
+
+        Long team1Id = match.getTeam1() != null ? match.getTeam1().getId() : null;
+        Long team2Id = match.getTeam2() != null ? match.getTeam2().getId() : null;
+        if (!predictedWinnerId.equals(team1Id) && !predictedWinnerId.equals(team2Id)) {
+            throw new IllegalArgumentException("Predicted winner must be one of the match teams");
+        }
+    }
+
+    private Boolean resolveCorrectness(Match match, Long predictedWinnerId) {
+        if (match == null || predictedWinnerId == null || !Boolean.TRUE.equals(match.getIsCompleted())) {
+            return null;
+        }
+        return predictedWinnerId.equals(match.getWinnerId());
+    }
+
     private PredictionResponse toResponse(Prediction prediction) {
         return PredictionResponse.builder()
                 .id(prediction.getId())
@@ -98,4 +157,3 @@ public class PredictionServiceImpl implements PredictionService {
         }
     }
 }
-

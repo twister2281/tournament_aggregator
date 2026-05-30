@@ -11,10 +11,13 @@ public interface PredictionService {
 
     PredictionResponse updatePrediction(Long id, PredictionRequest request);
 
+    PredictionResponse saveUserPrediction(Long userId, Long matchId, Long predictedWinnerId);
+
     PredictionResponse getPredictionById(Long id);
 
     List<PredictionResponse> getAllPredictions();
 
+    List<PredictionResponse> getPredictionsForUserAndTournament(Long userId, Long tournamentId);
+
     void deletePrediction(Long id);
 }
-

@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Команды</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/main.css}" href="/css/main.css">
+</head>
+<body class="app-bg bg-body-tertiary">
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm sticky-top">
+    <div class="container py-1">
+        <a class="navbar-brand fw-semibold" th:href="@{/}"><i class="bi bi-trophy-fill me-2 text-warning"></i>Tournament Aggregator</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav" aria-controls="mainNav" aria-expanded="false" aria-label="Переключить навигацию">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="mainNav">
+            <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-2">
+                <li class="nav-item"><a class="nav-link" th:href="@{/tournaments}">Турниры</a></li>
+                <li class="nav-item"><a class="nav-link active" th:href="@{/teams}">Команды</a></li>
+                <li class="nav-item" th:if="${isAuthenticated}"><a class="nav-link" th:href="@{/subscriptions}">Мои подписки</a></li>
+                <li class="nav-item"><a class="nav-link" th:href="@{/match-check}">Проверка матча</a></li>
+                <li class="nav-item" th:if="${isAdmin}">
+                    <a class="nav-link text-warning fw-semibold" th:href="@{/admin/dashboard}">Админ-панель</a>
+                </li>
+                <li class="nav-item" th:if="${!isAuthenticated}"><a class="nav-link" th:href="@{/login}">Вход</a></li>
+                <li class="nav-item" th:if="${isAuthenticated}">
+                    <span class="navbar-text me-2 text-white-50">
+                        <i class="bi bi-person-circle me-1"></i><span th:text="${currentUsername}">user</span>
+                    </span>
+                </li>
+                <li class="nav-item" th:if="${isAuthenticated}">
+                    <form th:action="@{/logout}" method="post" class="d-inline">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                        <button type="submit" class="btn btn-outline-light btn-sm px-3">Выйти</button>
+                    </form>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<main class="container py-5">
+    <div class="row align-items-end g-3 mb-4">
+        <div class="col-lg-8">
+            <span class="badge text-bg-success rounded-pill mb-3">Каталог</span>
+            <h1 class="display-6 fw-bold mb-2">Все команды</h1>
+            <p class="text-secondary mb-0">Список команд в системе. Войдите в аккаунт, чтобы подписаться на любимые команды.</p>
+        </div>
+        <div class="col-lg-4 text-lg-end" th:if="${isAuthenticated}">
+            <a th:href="@{/subscriptions}" class="btn btn-outline-primary">
+                <i class="bi bi-heart-fill me-2"></i>Мои подписки
+            </a>
+        </div>
+    </div>
+
+    <div th:if="${successMessage}" class="alert alert-success shadow-sm" th:text="${successMessage}"></div>
+    <div th:if="${errorMessage}" class="alert alert-danger shadow-sm" th:text="${errorMessage}"></div>
+
+    <div th:if="${#lists.isEmpty(teams)}" class="alert alert-info shadow-sm border-0">
+        Пока нет команд. Добавьте их через админ-панель или API.
+    </div>
+
+    <div class="row g-4">
+        <div class="col-md-6 col-lg-4" th:each="team : ${teams}">
+            <div class="card h-100 border-0 shadow-sm rounded-4">
+                <div class="card-body p-4 d-flex flex-column">
+                    <div class="d-flex align-items-start gap-3 mb-3">
+                        <img th:if="${team.logoUrl != null and !team.logoUrl.isBlank()}"
+                             th:src="${team.logoUrl}" th:alt="${team.name}"
+                             class="rounded-3" style="width: 3rem; height: 3rem; object-fit: cover;" />
+                        <div th:unless="${team.logoUrl != null and !team.logoUrl.isBlank()}"
+                             class="rounded-3 bg-primary-subtle text-primary d-flex align-items-center justify-content-center fw-bold"
+                             style="width: 3rem; height: 3rem;" th:text="${team.tag}">TAG</div>
+                        <div class="flex-grow-1">
+                            <h2 class="h5 fw-semibold mb-0" th:text="${team.name}">Team</h2>
+                            <span class="badge text-bg-light text-dark mt-1" th:text="${team.tag}">TAG</span>
+                        </div>
+                    </div>
+                    <p class="text-secondary small flex-grow-1"
+                       th:text="${team.description != null ? team.description : 'Описание отсутствует'}">Description</p>
+                    <div class="d-flex justify-content-between small text-secondary mb-3">
+                        <span>Win rate</span>
+                        <strong th:text="${team.winRate != null ? team.winRate : 0}">0</strong>
+                    </div>
+                    <div class="d-flex justify-content-between small text-secondary mb-3">
+                        <span>Матчей</span>
+                        <strong th:text="${team.totalMatches != null ? team.totalMatches : 0}">0</strong>
+                    </div>
+
+                    <div th:if="${!isAuthenticated}">
+                        <a class="btn btn-outline-primary w-100" th:href="@{/login}">
+                            <i class="bi bi-box-arrow-in-right me-2"></i>Войти, чтобы подписаться
+                        </a>
+                    </div>
+                    <form th:if="${isAuthenticated and !team.subscribed}"
+                          th:action="@{'/teams/' + ${team.id} + '/subscribe'}" method="post">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="bi bi-plus-circle me-2"></i>Подписаться
+                        </button>
+                    </form>
+                    <form th:if="${isAuthenticated and team.subscribed}"
+                          th:action="@{'/teams/' + ${team.id} + '/unsubscribe'}" method="post">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                        <button type="submit" class="btn btn-outline-danger w-100">
+                            <i class="bi bi-heartbreak me-2"></i>Отписаться
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

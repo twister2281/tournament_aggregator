@@ -15,6 +15,8 @@
         <a class="navbar-brand fw-semibold" th:href="@{/}"><i class="bi bi-trophy-fill me-2 text-warning"></i>Tournament Aggregator</a>
         <div class="ms-auto d-flex flex-wrap gap-2 align-items-center">
             <a class="btn btn-outline-light btn-sm" th:href="@{/}">Главная</a>
+            <a class="btn btn-outline-light btn-sm" th:href="@{/teams}">Команды</a>
+            <a class="btn btn-outline-light btn-sm" th:if="${isAuthenticated}" th:href="@{/subscriptions}">Подписки</a>
             <a sec:authorize="hasRole('ADMIN')" th:if="${isAdmin}" class="btn btn-warning btn-sm fw-semibold" th:href="@{/admin/dashboard}">
                 <i class="bi bi-gear-fill me-1"></i>Админ-панель
             </a>
