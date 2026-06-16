@@ -58,13 +58,11 @@ public class AdminController {
         prepareModel(model);
         model.addAttribute("teamRequest", TeamCreateRequest.builder().build());
         model.addAttribute("tournamentRequest", TournamentRequest.builder().build());
-
         List<TournamentSummaryView> tournaments = tournamentPageService.getTournamentSummaries();
         Long selectedTournamentId = resolveTournamentId(tournamentId, tournaments);
         TournamentDetailView selectedTournament = selectedTournamentId != null
                 ? tournamentPageService.getTournamentDetail(selectedTournamentId)
                 : null;
-
         model.addAttribute("selectedTournamentId", selectedTournamentId);
         model.addAttribute("selectedTournament", selectedTournament);
         return "admin/tournaments";

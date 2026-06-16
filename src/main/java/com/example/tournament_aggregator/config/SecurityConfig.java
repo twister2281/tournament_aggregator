@@ -16,8 +16,7 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) {
-        http
-                .csrf(csrf -> csrf.ignoringRequestMatchers("/api/**"))
+        http.csrf(csrf -> csrf.ignoringRequestMatchers("/api/**"))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/", "/index", "/login", "/register", "/error", "/auth/steam", "/auth/steam/**").permitAll()
                         .requestMatchers("/tournaments", "/tournaments/**").permitAll()
